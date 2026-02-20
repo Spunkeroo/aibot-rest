@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://embeds.beehiiv.com https://predict-network-ec767-default-rtdb.firebaseio.com https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; frame-src https://embeds.beehiiv.com https://www.youtube.com https://youtube.com; connect-src 'self' https://www.google-analytics.com https://predict-network-ec767-default-rtdb.firebaseio.com https://api.coingecko.com https://*.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>aibot.rest — AI restaurant finder — meal planner, menu analyzer & food advisor</title>
@@ -13,6 +16,9 @@
   <meta name="twitter:site" content="@SpunkArt13">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
   <link rel="canonical" href="https://aibot.rest">
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"RestBot","url":"https://aibot.rest","description":"AI-powered restaurant recommendations, meal planning, and food advice. Find the perfect restaurant or plan your meals.","applicationCategory":"UtilityApplication","operatingSystem":"Web"}</script>
@@ -165,7 +171,7 @@
   <div style="max-width:500px;margin:2rem auto;padding:1.5rem;background:#0a0a12;border:1px solid #1a1a2e;border-radius:12px;text-align:center;">
     <h3 style="margin:0 0 0.5rem;font-size:1rem;color:#e8e8f0;">Stay Updated</h3>
     <p style="margin:0 0 1rem;font-size:0.8rem;color:#8888a0;">Get the latest tips, deals, and updates.</p>
-    <iframe src="https://embeds.beehiiv.com/6831d05b-f121-4e0d-951b-16f88ddd9ec3?slim=true" data-test-id="beehiiv-embed" height="52" frameborder="0" scrolling="no" style="margin:0;border-radius:8px;background-color:transparent;width:100%;max-width:400px;"></iframe>
+    <iframe loading="lazy" sandbox="allow-scripts allow-forms allow-same-origin" src="https://embeds.beehiiv.com/6831d05b-f121-4e0d-951b-16f88ddd9ec3?slim=true" data-test-id="beehiiv-embed" height="52" frameborder="0" scrolling="no" style="margin:0;border-radius:8px;background-color:transparent;width:100%;max-width:400px;"></iframe>
   </div>
 </footer>
 <script>
@@ -177,10 +183,25 @@ function getRemainingUses(){const d=getUsage();const b=parseInt(localStorage.get
 function isPaid(){const s=JSON.parse(localStorage.getItem('aibot_subscription')||'{}');if(s.type==='month'&&new Date(s.expires)>new Date())return true;if(s.type==='day'&&new Date(s.expires)>new Date())return true;return false;}
 function updateUsageDisplay(){const d=getUsage();const b=parseInt(localStorage.getItem('aibot_bonus')||'0');document.getElementById('useCount').textContent=d.count;document.getElementById('useMax').textContent=isPaid()?'\u221e':FREE_USES+b;}
 const messagesEl=document.getElementById('messages');const welcomeEl=document.getElementById('welcome');const inputEl=document.getElementById('userInput');const sendBtn=document.getElementById('sendBtn');
+
+function sanitizeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  let safe = div.innerHTML;
+  // Allow only safe formatting tags
+  safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  safe = safe.replace(/\n- /g, '\n\u2022 ');
+  safe = safe.replace(/\n\n/g, '<br><br>');
+  safe = safe.replace(/\n/g, '<br>');
+  // Allow safe links (only our domains)
+  safe = safe.replace(/&lt;a href=&quot;(https:\/\/(stake\.com|shuffle\.com|winna\.com|coinbase\.com|shop\.ledger\.com|kalshi\.com|everyx\.io|aibot\.[a-z]+|spunk\.bet|predict\.[a-z]+|scam\.[a-z]+|stimulant\.[a-z]+|betai\.buzz|customgpt\.ai)[^&]*?)&quot;[^&]*?&gt;([^&]*?)&lt;\/a&gt;/g, '<a href="$1" target="_blank" rel="noopener">$3</a>');
+  return safe;
+}
+
 function askExample(text){inputEl.value=text;sendMessage();}
 async function sendMessage(){const text=inputEl.value.trim();if(!text)return;if(!isPaid()&&getRemainingUses()<=0){showPaywall();return;}welcomeEl.style.display='none';addMessage(text,'user');inputEl.value='';sendBtn.disabled=true;const typingEl=showTyping();incrementUsage();try{const r=await generateResponse(text);typingEl.remove();addBotMessage(r);}catch(e){typingEl.remove();addBotMessage("Sorry, I'm having trouble. Please try again.");}sendBtn.disabled=false;inputEl.focus();}
 function addMessage(text,type){const m=document.createElement('div');m.className=`msg msg-${type}`;m.textContent=text;messagesEl.appendChild(m);messagesEl.scrollTop=messagesEl.scrollHeight;}
-function addBotMessage(text){const m=document.createElement('div');m.className='msg msg-bot';let f=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n- /g,'\n\u2022 ').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');m.innerHTML=`<div>${f}</div><div class="msg-actions"><button class="msg-action" onclick="shareOnX()">Share on X</button><button class="msg-action" onclick="copyResponse(this)">Copy</button></div>`;messagesEl.appendChild(m);messagesEl.scrollTop=messagesEl.scrollHeight;}
+function addBotMessage(text){const m=document.createElement('div');m.className='msg msg-bot';let f=sanitizeHTML(text);m.innerHTML=`<div>${f}</div><div class="msg-actions"><button class="msg-action" onclick="shareOnX()">Share on X</button><button class="msg-action" onclick="copyResponse(this)">Copy</button></div>`;messagesEl.appendChild(m);messagesEl.scrollTop=messagesEl.scrollHeight;}
 function showTyping(){const t=document.createElement('div');t.className='typing';t.innerHTML='<span></span><span></span><span></span>';messagesEl.appendChild(t);messagesEl.scrollTop=messagesEl.scrollHeight;return t;}
 async function generateResponse(q){await new Promise(r=>setTimeout(r,800+Math.random()*1200));return generateSmartResponse(q);}
 function generateSmartResponse(query){const q=query.toLowerCase();const responses=getResponses();let bestMatch=null,bestScore=0;for(const [keywords,response] of responses){const score=keywords.filter(k=>q.includes(k)).length;if(score>bestScore){bestScore=score;bestMatch=response;}}if(bestMatch)return bestMatch;return generateContextualResponse(query);}
